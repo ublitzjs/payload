@@ -1,0 +1,5 @@
+package-lock.json
+bun.*
+build
+node_modules
+uploads
