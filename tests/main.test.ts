@@ -15,7 +15,7 @@ import {
   type lowHeaders,
   type Server,
 } from "@ublitzjs/core";
-import { basicParseFormDataBody, basicParseSimpleBody } from "../index.mjs";
+import { basicParseFormDataBody, basicParseSimpleBody } from "../mjs/index.mjs";
 //#region variables
 var port: number,
   socket: us_listen_socket,
