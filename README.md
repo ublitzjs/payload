@@ -7,3 +7,5 @@ This package lets you parse payload coming from http requests ( + multipart). Fu
 ## parseSimpleBody and parseFormDataBody
 
 (sorry, docs are now incomplete. Look into <a href="./index.d.ts">TS declaration file</a> for more)
+
+(and also importing "@ublitzjs/payload/ws" gives you 2 special high-performant cross-platform functions for easier handling of websocket messages)

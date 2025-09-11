@@ -1,11 +1,11 @@
 "use strict";
-import { EventEmitter } from "tseep";
-import { tooLargeBody } from "@ublitzjs/core";
-import busboy from "busboy";
-import { nanoid } from "nanoid";
-import { createWriteStream, WriteStream } from "node:fs";
-import { Buffer } from "node:buffer";
-import { promises as fs } from "node:fs";
+var { EventEmitter } = require("tseep");
+var { tooLargeBody } = require("@ublitzjs/core");
+var busboy = require("busboy");
+var { nanoid } = require("nanoid");
+var { createWriteStream} = require("node:fs");
+var { Buffer } = require("node:buffer");
+var { promises: fs } = require("node:fs");
 var wroteToDiskFileEvent = Symbol(),
   formDataEndEvent = Symbol(),
   simpleBodyEndEvent = Symbol();
@@ -233,7 +233,7 @@ async function basicParseFormDataBody(opts) {
   if (res.aborted) throw new Error("Aborted");
   return body.data;
 }
-export {
+module.exports = {
   parseFormDataBody,
   parseSimpleBody,
   basicParseFormDataBody,
