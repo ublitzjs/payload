@@ -6,9 +6,11 @@ import {
   us_listen_socket_close,
   us_socket_local_port,
 } from "uWebSockets.js";
+import {encodeWSMessage, preParseWSMessage} from "../mjs/ws.mjs";
 import fs from "node:fs";
 import {
   checkContentLength,
+  closure,
   registerAbort,
   type HttpRequest,
   type HttpResponse,
@@ -68,7 +70,34 @@ server.trace("/simple", parseFN).post("/multi-memory", async (res, req) => {
   }
 });
 //#endregion
-
+describe("websocket utilities", ()=>{
+  it("encodes and decodes to the same string", ()=>{
+    var message = "Hello World!"
+    var event = "sample event"
+    expect(
+      closure(() => {
+        var result = preParseWSMessage(
+          encodeWSMessage(event, new TextEncoder().encode(message))
+        )
+        result.message = new TextDecoder().decode(result.message) as any
+        return result;
+      })
+    ).toEqual({event, message})
+  })
+  it("encodes and decodes multi-language messages", ()=>{
+    var message = "Hello Привіт السلام عليكم 你好"
+    var event = "multi-language event"
+    expect(
+      closure(() => {
+        var result = preParseWSMessage(
+          encodeWSMessage(event, new TextEncoder().encode(message))
+        )
+        result.message = new TextDecoder().decode(result.message) as any
+        return result;
+      })
+    ).toEqual({event, message})
+  })
+})
 describe("simple routes", { concurrent: true }, () => {
   it("Parses exactly up to limit", async () => {
     var message = "helloworld";
