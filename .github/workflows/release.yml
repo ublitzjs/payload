@@ -8,24 +8,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
+        with:   
+          node-version: 25
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
       - name: install deps
-        run: npm i
+        run: bun install
       - name: run test
-        run: npx vitest run
+        run: bun x vitest run
   deploy:
     needs: test
     name: Deploy on npm
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 25
           registry-url: https://registry.npmjs.org
       - name: Publish to npm
         run: npm publish
