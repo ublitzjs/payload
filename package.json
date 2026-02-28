@@ -46,7 +46,7 @@
     "mk-tmp": "node -p 'var fs=require(`fs`);if(fs.existsSync(`tmp`))fs.rmSync(`tmp`,{recursive:true});fs.mkdirSync(`tmp`)'",
     "test:base": "tsd && vitest run --coverage tests/vitest/index.test.ts",
     "test:load:win32": "powershell -File ./tests/k6/run.ps1",
-    "test:load": "./tests/k6/run.sh"
+    "test:load": "chmod +x ./tests/k6/run.sh && ./tests/k6/run.sh"
   },
   "publishConfig": {
     "access": "public"
