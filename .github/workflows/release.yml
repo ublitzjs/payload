@@ -18,6 +18,7 @@ jobs:
           node-version: 25
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
+      - uses: grafana/setup-k6-action@v1
       - name: install deps
         run: bun install
       - name: build

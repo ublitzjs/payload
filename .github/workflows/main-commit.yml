@@ -7,17 +7,14 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - name: checkout
-        uses: actions/checkout@v5
-      - name: setup Node.js
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
         with:   
           node-version: 25
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-      - name: install deps
-        run: bun ci
+      - uses: grafana/setup-k6-action@v1
+      - uses: oven-sh/setup-bun@v2
+      - run: bun ci
       - name: build
         run: bun run trick-tsd && bun run build 
-      - name: run test
+      - name: test
         run: mkdir tmp && bun run test:base && bun run test:load && rm -rf tmp
