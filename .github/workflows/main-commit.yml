@@ -18,6 +18,6 @@ jobs:
       - name: install deps
         run: bun ci
       - name: build
-        run: bun run trick-tsd && bun run build
+        run: bun run trick-tsd && bun run build 
       - name: run test
-        run: bun run test
+        run: mkdir tmp && bun run test:base && bun run test:load && rm -rf tmp
