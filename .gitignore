@@ -1,5 +1,5 @@
-package-lock.json
-bun.*
 build
+coverage
 node_modules
-uploads
+tmp
+dist

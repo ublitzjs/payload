@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "module": "es2022",
+    "target": "es2022",
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
+    "noUnusedLocals": true,
+    "allowUnusedLabels": false,
+    "strictBuiltinIteratorReturn": true,
+    "strictBindCallApply": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noUncheckedIndexedAccess": true,
+    "noUncheckedSideEffectImports": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+    "strictPropertyInitialization": true,
+    "strictFunctionTypes": true,
+    "allowUnreachableCode": false,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": false,
+    "strict": true,
+    "alwaysStrict": true,
+    "sourceMap": false
+  }
+}
+
+
+
