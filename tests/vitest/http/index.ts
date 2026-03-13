@@ -440,10 +440,10 @@ export default async function(module: typeof import("@ublitzjs/payload")) {
             registerAbort(res)
             var result = await module.accumulateBody(res, Number(req.getHeader("content-length")), false)
             if(res.aborted) return;
-            expectType<Buffer<ArrayBuffer>>(result)
+            expectType<Buffer<ArrayBuffer>|undefined>(result)
             var result2 = await module.accumulateBody(res, Number(req.getHeader("content-length")), true)
             if(res.aborted) return;
-            expectType<Buffer<SharedArrayBuffer>>(result2)
+            expectType<Buffer<SharedArrayBuffer>|undefined>(result2)
           })
         }
       })
@@ -453,6 +453,7 @@ export default async function(module: typeof import("@ublitzjs/payload")) {
         server.post("/body/large", async (res, req)=>{
           registerAbort(res)
           var result = await module.accumulateBody(res, Number(req.getHeader("content-length")))
+          if(!result) return;
           expect(body.compare(result)).toBe(0)
           res.cork(()=>res.endWithoutBody())
         })

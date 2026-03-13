@@ -308,7 +308,7 @@ export async function accumulateBody<T extends boolean = false>(
   res: HttpResponse,
   CL: number = 0,
   shared?: T 
-): Promise<AccumulatedBody<T>> {
+): Promise<AccumulatedBody<T>|undefined> {
   var data: AccumulatedBody<T>
   var writtenBytes = 0;
   var write: (ab: ArrayBuffer)=>void = CL ? (ab)=>{
@@ -317,18 +317,14 @@ export async function accumulateBody<T extends boolean = false>(
     data = Buffer.concat([data, Buffer.from(ab)]) as AccumulatedBody<T>
   }
   data = (shared ? Buffer.from(new SharedArrayBuffer(CL)) : Buffer.allocUnsafe(CL)) as AccumulatedBody<T>
-  res.onData((ab, isLast) => {
-    write(ab);
-    writtenBytes += ab.byteLength;
-    if(isLast) res.emitter.emit(bodyReceivalEndEvent);
-  });
-  function onAborted(){
-    data = Buffer.allocUnsafe(0) as AccumulatedBody<T>
-    res.emitter.emit(bodyReceivalEndEvent);
-  }
-  res.emitter.once("abort", onAborted);
-  await new Promise((resolve) => res.emitter.once(bodyReceivalEndEvent, resolve));
-  if(!res.aborted) res.emitter.off("abort", onAborted);
-  return data;
+  return new Promise((resolve) => {
+    function onAborted() { resolve(undefined) }
+    res.emitter.once("abort", onAborted);
+    res.onData((ab, isLast) => {
+      write(ab);
+      writtenBytes += ab.byteLength;
+      if (isLast) { res.emitter.off("abort", onAborted); resolve(data) }
+    });
+  })
 }
 
