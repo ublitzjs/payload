@@ -7,7 +7,6 @@ import { nanoid } from "nanoid";
 import { createWriteStream, type WriteStream } from "node:fs";
 import { Buffer } from "node:buffer";
 import { promises as fs } from "node:fs";
-var bodyReceivalEndEvent = Symbol();
 // type formCT = "multipart/form-data" | "application/x-www-form-urlencoded";
 interface FileInfo {
   filename: string;
@@ -145,7 +144,7 @@ export async function parseFormDataBody<T extends "memory" | "disk", Repeated ex
       }
       emergency = Promise.all(massFileDestruction)
     }
-    res.emitter.emit(bodyReceivalEndEvent);
+    endReceivingBody()
   }
   function emptyCB(){}
   parserStream
@@ -159,7 +158,7 @@ export async function parseFormDataBody<T extends "memory" | "disk", Repeated ex
             ((files as any)[name] ??= []).push(file);
           } else if (name in files) {
             lastError ??= "File duplication"
-            return res.emitter.emit(bodyReceivalEndEvent);
+            return endReceivingBody()
           } else (files as any)[name] = file;
           readable.on("data", (chunk: Buffer) => {
             contents.push(chunk);
@@ -167,7 +166,7 @@ export async function parseFormDataBody<T extends "memory" | "disk", Repeated ex
             // on error is empty because it can happen only when destroying parserStream
           }).once("error",emptyCB).once("limit", ()=>{
             lastError ??= "File " + file.filename + " is too large";
-            res.emitter.emit(bodyReceivalEndEvent)
+            endReceivingBody()
           }).once("end", () => {
             file.contents = Buffer.concat(contents, size)
           })
@@ -179,7 +178,7 @@ export async function parseFormDataBody<T extends "memory" | "disk", Repeated ex
             ((files as any)[name] ??= []).push(file)
           } else if (name in files) {
             if (!lastError) lastError = "File duplicate"
-            return res.emitter.emit(bodyReceivalEndEvent);
+            return endReceivingBody()
           } else files[name] = file as any;
           readable
             // create file only if it needs some contents
@@ -204,7 +203,7 @@ export async function parseFormDataBody<T extends "memory" | "disk", Repeated ex
                       if (!lastError) { lastError = err.message; errCode = "500"; }
                       readable.destroy();
                       resolve()
-                      if (!emergency) res.emitter.emit(bodyReceivalEndEvent);
+                      if (!emergency) endReceivingBody()
                     });
                 })
               )
@@ -221,7 +220,7 @@ export async function parseFormDataBody<T extends "memory" | "disk", Repeated ex
               })
             }).once("error", emptyCB).once("limit", ()=>{
               lastError ??= "File " + file.filename + " is too large";
-              res.emitter.emit(bodyReceivalEndEvent)
+              endReceivingBody()
             }).once("end", ()=>{
               if(writable) {
                 if(readable.isPaused()) { writable.emit("drain") }
@@ -241,7 +240,7 @@ export async function parseFormDataBody<T extends "memory" | "disk", Repeated ex
         : (fieldname, value) => {
           if (fieldname in fields) {
             if (!lastError) lastError = "Field duplicate"
-            res.emitter.emit(bodyReceivalEndEvent)
+            endReceivingBody()
           } else (fields as any)[fieldname] = value
         }
     )
@@ -250,26 +249,20 @@ export async function parseFormDataBody<T extends "memory" | "disk", Repeated ex
         Promise
           .all(diskWritePromises)
           // no need to handle "catch" as all those promises already do
-          .finally(() => { res.emitter.emit(bodyReceivalEndEvent) })
-      else 
-        res.emitter.emit(bodyReceivalEndEvent)
+          .finally(endReceivingBody)
+      else endReceivingBody()
     })
     .once("error", (err) => {
       if (!lastError) lastError = (err as Error).message;
-      res.emitter.emit(bodyReceivalEndEvent)
+      endReceivingBody()
     })
   function onLimitsExceeded() {
-    lastError ??= "Too many parts in request"; res.emitter.emit(bodyReceivalEndEvent)
+    lastError ??= "Too many parts in request"; endReceivingBody()
   }
   parserStream
     .once("fieldsLimit", onLimitsExceeded)
     .once("filesLimit", onLimitsExceeded)
     .once("partsLimit", onLimitsExceeded)
-  function onAborted() {
-    if(!lastError) { lastError = "aborted" }
-    emitEmergency()
-  }
-  res.emitter.once("abort", onAborted);
   res.onData((ab, isLast) => {
     if (lastError) return;
     var copy = Buffer.allocUnsafe(ab.byteLength)
@@ -278,7 +271,13 @@ export async function parseFormDataBody<T extends "memory" | "disk", Repeated ex
     if (isLast) { parserStream.end();}
   });
   // calling emitter.emit many times won't hurt, as listener is ONE and emitEmergency might be called IN ONE PLACE
-  await new Promise((resolve) => res.emitter.once(bodyReceivalEndEvent, resolve));
+  var endReceivingBody: ()=>void | undefined
+  function onAborted() {
+    if(!lastError) { lastError = "aborted" }
+    emitEmergency()
+  }
+  res.emitter.once("abort", onAborted);
+  await new Promise<void>((resolve) => { endReceivingBody = resolve });
   if(!res.aborted) res.emitter.off("abort", onAborted);
   if(lastError && !emergency) { emitEmergency(); }
   if(emergency && emergency !== true) await (emergency as Promise<void[]>);

@@ -1,11 +1,12 @@
 {
   "name": "@ublitzjs/payload",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "types": "./dist/types/index.d.ts",
   "files": ["dist"],
   "tsd": {
     "directory": "tests"
   },
+  "license": "MIT",
   "scripts": {
     "trick-tsd": "bun link && bun link @ublitzjs/payload",
     "build:esm": "tsc -p tsconfig.esm.json && echo '{\"type\": \"module\"}' > dist/esm/package.json",
@@ -42,7 +43,7 @@
     "@types/busboy": "^1.5.4",
     "@types/k6": "^1.6.0",
     "@types/node": "^25.2.1",
-    "@vitest/coverage-v8": "4.0.18",
+    "@vitest/coverage-v8": "^4.1.0",
     "esbuild": "^0.27.3",
     "tsd": "^0.33.0",
     "undici": "^7.22.0",
