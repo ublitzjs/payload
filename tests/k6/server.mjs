@@ -1,5 +1,5 @@
 import {App} from "uWebSockets.js"
-import {extendApp, registerAbort} from "@ublitzjs/core"
+import {extendApp, regAbort} from "@ublitzjs/core"
 import {accumulateBody, parseFormDataBody} from "@ublitzjs/payload"
 import {nanoid} from "nanoid"
 import {mkdirSync, rm} from "node:fs"
@@ -8,7 +8,7 @@ var server = extendApp(App())
 var outDir = "tmp/" + nanoid(7)  
 mkdirSync(outDir)
 server.post("/multipart-disk", async (res, req)=>{
-  registerAbort(res)
+  regAbort(res)
   var result = await parseFormDataBody({
     CT: req.getHeader("content-type"), res, outDir,
     parseLimits: {fileSize: 1024*1024+1}
@@ -24,7 +24,7 @@ server.post("/multipart-disk", async (res, req)=>{
   ) + '}'))
 })
 server.post("/multipart-memory", async (res, req)=>{
-  registerAbort(res)
+  regAbort(res)
   var result = await parseFormDataBody({
     CT: req.getHeader("content-type"), res, outDir,
     parseLimits: {fileSize: 1024*1024+1}
@@ -40,7 +40,7 @@ server.post("/multipart-memory", async (res, req)=>{
   ) + '}'))
 })
 server.post("/upload", async (res, req)=>{
-  registerAbort(res)
+  regAbort(res)
   var result = await accumulateBody(res, Number(req.getHeader("content-length")), false)
   res.cork(()=>res.end('{"receivedBytes": ' + result.byteLength + '}'))
 })

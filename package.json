@@ -1,6 +1,6 @@
 {
   "name": "@ublitzjs/payload",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "types": "./dist/types/index.d.ts",
   "files": ["dist"],
   "tsd": {
@@ -31,7 +31,7 @@
     }
   },
   "dependencies": {
-    "@ublitzjs/core": "^1.1.0",
+    "@ublitzjs/core": "^1.2.0",
     "busboy": "^1.6.0",
     "nanoid": "^5.1.6",
     "tseep": "^1.3.1"

@@ -33,7 +33,7 @@ export type FilesOnDisk<Repeated extends boolean> = FilesType<FileOnDisk, Repeat
 // type of "files" object, returned by parseFormDataBody with memory mode
 export type FilesInMemory<Repeated extends boolean> = FilesType<FileInMemory, Repeated>;
 /**
-* This function asynchronously parses multipart requests until the end, so that any work considering unfinished request wouldn't need to be undone.
+* This function asynchronously parses multipart requests until the end, so that any work considering unfinished request wouldn't need to be undone. It requires "regAbort" from "@ublitzjs/core" package to be used on response.
 * This utility expects "unpaused" response object and doesn't set any additional properties on it.  
 * When limits are exceeded - acts as like because of an error (as described below)
 * @param limits - limits passed to "busboy"
@@ -54,7 +54,7 @@ export type FilesInMemory<Repeated extends boolean> = FilesType<FileInMemory, Re
 *       }
 *     }, 
 *     // mode "memory" | "disk"
-*     "disk", 
+*     "disk",  It requires "regAbort" from "core" package to be used on response.
 *     // whether to accept repeated files/fields
 *     false
 *   );
@@ -270,15 +270,14 @@ export async function parseFormDataBody<T extends "memory" | "disk", Repeated ex
     parserStream.write(copy);
     if (isLast) { parserStream.end();}
   });
-  // calling emitter.emit many times won't hurt, as listener is ONE and emitEmergency might be called IN ONE PLACE
   var endReceivingBody: ()=>void | undefined
   function onAborted() {
     if(!lastError) { lastError = "aborted" }
     emitEmergency()
   }
-  res.emitter.once("abort", onAborted);
+  res.abortCh.sub(onAborted);
   await new Promise<void>((resolve) => { endReceivingBody = resolve });
-  if(!res.aborted) res.emitter.off("abort", onAborted);
+  if(!res.aborted) res.abortCh.unsub(onAborted);
   if(lastError && !emergency) { emitEmergency(); }
   if(emergency && emergency !== true) await (emergency as Promise<void[]>);
   return !lastError 
@@ -287,7 +286,7 @@ export async function parseFormDataBody<T extends "memory" | "disk", Repeated ex
 }
 type AccumulatedBody<T extends boolean> =  Buffer<T extends true ? SharedArrayBuffer : ArrayBuffer>
 /**
-* This utility just accumulates body and verifies if it stays within the given limit.
+* This utility just accumulates body and verifies if it stays within the given limit. It requires "regAbort" from "@ublitzjs/core" package to be used.
 * @param CL this is Content-Length to be compared against + acts as a preallocation amount.
 * If not given by developer OR == 0 - constantly happen memory reallocations with Buffer.concat
 * @param shared whether return Buffer of SharedArrayBuffer or simple ArrayBuffer. SharedArrayBuffer lets you pass data to a worker thread if work there is cpu intensive
@@ -318,11 +317,11 @@ export async function accumulateBody<T extends boolean = false>(
   data = (shared ? Buffer.from(new SharedArrayBuffer(CL)) : Buffer.allocUnsafe(CL)) as AccumulatedBody<T>
   return new Promise((resolve) => {
     function onAborted() { resolve(undefined) }
-    res.emitter.once("abort", onAborted);
+    res.abortCh.sub(onAborted);
     res.onData((ab, isLast) => {
       write(ab);
       writtenBytes += ab.byteLength;
-      if (isLast) { res.emitter.off("abort", onAborted); resolve(data) }
+      if (isLast) { res.abortCh.unsub(onAborted); resolve(data) }
     });
   })
 }

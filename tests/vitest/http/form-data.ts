@@ -1,7 +1,7 @@
 import type { ClientRequest } from "node:http";
 import type { FileInMemory, FileOnDisk, parseFormDataBody } from "@ublitzjs/payload"
 import type { Limits } from "busboy";
-import { registerAbort, type HttpRequest, type HttpResponse } from "@ublitzjs/core";
+import { regAbort, type HttpRequest, type HttpResponse } from "@ublitzjs/core";
 import { expect } from "vitest";
 import { readFileSync, rmSync } from "node:fs";
 
@@ -61,7 +61,7 @@ export function setupHandler(parseBody: typeof parseFormDataBody) {
     opts: { limits?: Limits, outDir?: string } = {}
   ) {
     return async (res: HttpResponse, req: HttpRequest) => {
-      registerAbort(res)
+      regAbort(res)
       var result = await parseBody({
         res, CT: req.getHeader("content-type"), parseLimits: opts.limits,
         outDir: opts.outDir,

@@ -1,4 +1,4 @@
-import { registerAbort } from "@ublitzjs/core";
+import { regAbort } from "@ublitzjs/core";
 import { request } from "node:http";
 import {expectType} from "tsd"
 //import { setTimeout as awaitTimeout } from "node:timers/promises"
@@ -37,7 +37,7 @@ export default async function(module: typeof import("@ublitzjs/payload")) {
         it("is type-safe", skipHelper(), ()=>{
           if(runningTsd) {
             server.post("/types", async (res, req)=>{
-              registerAbort(res);
+              regAbort(res);
               var resultMemorySingular = await module.parseFormDataBody({
                 res, CT:req.getHeader("content-type")
               }, "memory", false);
@@ -238,7 +238,7 @@ export default async function(module: typeof import("@ublitzjs/payload")) {
         it("successfully aborts request", skipHelper(), async () => {
           await new Promise<void>((resolve) => {
             server.post("/files/memory/abort", async (res, req) => {
-              registerAbort(res)
+              regAbort(res)
               var result = await module.parseFormDataBody({
                 CT: req.getHeader("content-type"),
                 res
@@ -360,7 +360,7 @@ export default async function(module: typeof import("@ublitzjs/payload")) {
           function doIt(type: "/singular" | "/repeated") {
             return new Promise<void>((resolve) => {
               server.post("/files/disk/abort" + type, async (res, req) => {
-                registerAbort(res)
+                regAbort(res)
                 var result = await module.parseFormDataBody({
                   CT: req.getHeader("content-type"),
                   res, outDir
@@ -399,7 +399,7 @@ export default async function(module: typeof import("@ublitzjs/payload")) {
           var outDir = "tmp/" + nanoid(10);
           mkdirSync(outDir)
           server.post("/files/disk/empty", async (res, req)=>{
-            registerAbort(res)
+            regAbort(res)
             var result = await module.parseFormDataBody({ res, CT: req.getHeader("content-type"), outDir },"disk", false)
             if (result.ok) {
               try {
@@ -437,7 +437,7 @@ export default async function(module: typeof import("@ublitzjs/payload")) {
       it("is type-safe", ()=>{
         if(runningTsd) {
           server.post("/body/types", async (res, req)=>{
-            registerAbort(res)
+            regAbort(res)
             var result = await module.accumulateBody(res, Number(req.getHeader("content-length")), false)
             if(res.aborted) return;
             expectType<Buffer<ArrayBuffer>|undefined>(result)
@@ -451,7 +451,7 @@ export default async function(module: typeof import("@ublitzjs/payload")) {
       it("accumulates larger bodies then 64KiB", async ()=>{
         var body = Buffer.allocUnsafeSlow(65*1024)
         server.post("/body/large", async (res, req)=>{
-          registerAbort(res)
+          regAbort(res)
           var result = await module.accumulateBody(res, Number(req.getHeader("content-length")))
           if(!result) return;
           expect(body.compare(result)).toBe(0)
